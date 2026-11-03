@@ -1,0 +1,12 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "prompts/helpfulness.md"
+  ],
+  "expected": {
+    "verdict": "PASS"
+  },
+  "head_sha": "unknown",
+  "name": "p1_pass",
+  "predictions": "predictions.jsonl"
+}

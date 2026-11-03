@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/aidless/eval-gate/schemas/run.schema.json",
+  "title": "eval-gate run meta",
+  "description": "runs/<run_id>/run.json：一次门禁运行的契约层。结构改编自 agent-reliability/contracts/run.schema.json，新增证据清单与门禁配置。",
+  "type": "object",
+  "required": [
+    "run_id",
+    "created_utc",
+    "rules_version",
+    "scorer_version",
+    "tool_digests",
+    "repos",
+    "inputs",
+    "evidence_manifest",
+    "layers"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,64}$"},
+    "created_utc": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"},
+    "rules_version": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+    "scorer_version": {"type": "string", "pattern": "^[0-9a-f]{16}$"},
+    "tool_digests": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "repos": {
+      "type": "object",
+      "required": ["mcp-guard", "auditable-llm-eval"],
+      "additionalProperties": false,
+      "properties": {
+        "mcp-guard": {"$ref": "#/$defs/repo"},
+        "auditable-llm-eval": {"$ref": "#/$defs/repo"}
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "dataset_sha256",
+        "predictions_sha256",
+        "baseline_predictions_sha256",
+        "rubric_sha256",
+        "head_sha",
+        "changed_files",
+        "config"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "dataset_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "predictions_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "baseline_predictions_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "rubric_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "head_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$|^unknown$"},
+        "changed_files": {"type": "array", "items": {"type": "string"}},
+        "config": {
+          "type": "object",
+          "required": ["min_pass", "max_regression", "min_n", "alpha", "bootstrap_iters", "seed"],
+          "additionalProperties": true,
+          "properties": {
+            "min_pass": {"type": "number", "minimum": 0, "maximum": 1},
+            "max_regression": {"type": "number", "minimum": 0, "maximum": 1},
+            "min_n": {"type": "integer", "minimum": 0},
+            "alpha": {"type": "number", "minimum": 0, "maximum": 1},
+            "bootstrap_iters": {"type": "integer", "minimum": 1},
+            "seed": {"type": "integer"}
+          }
+        }
+      }
+    },
+    "evidence_manifest": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+    },
+    "layers": {
+      "type": "object",
+      "required": ["input_guard", "output_audit", "attack_simulation"],
+      "additionalProperties": false,
+      "properties": {
+        "input_guard": {"type": "string", "enum": ["present", "absent"]},
+        "output_audit": {"type": "string", "enum": ["present", "absent"]},
+        "attack_simulation": {"type": "string", "enum": ["present", "absent"]}
+      }
+    }
+  },
+  "$defs": {
+    "repo": {
+      "type": "object",
+      "required": ["path", "commit"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {"type": "string"},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$|^unknown$"}
+      }
+    }
+  }
+}

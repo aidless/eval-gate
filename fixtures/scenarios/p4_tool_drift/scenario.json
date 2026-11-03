@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "tools/lookup_order.json"
+  ],
+  "expected": {
+    "verdict": "BLOCK"
+  },
+  "head_sha": "unknown",
+  "name": "p4_tool_drift",
+  "predictions": "predictions.jsonl",
+  "tool_snapshot": "tools.snapshot.json",
+  "tools": "tools.candidate.json"
+}

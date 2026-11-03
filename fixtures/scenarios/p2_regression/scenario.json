@@ -1,0 +1,12 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "prompts/grounding.md"
+  ],
+  "expected": {
+    "verdict": "BLOCK"
+  },
+  "head_sha": "unknown",
+  "name": "p2_regression",
+  "predictions": "predictions.jsonl"
+}

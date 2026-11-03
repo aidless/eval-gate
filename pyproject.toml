@@ -1,0 +1,17 @@
+[project]
+name = "eval-gate"
+version = "0.1.0"
+description = "Statistical gate for LLM eval changes: CI-based verdicts, attribution, tamper-resistant evidence"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = []
+
+[project.scripts]
+eval-gate = "eval_gate.cli:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["eval_gate*"]

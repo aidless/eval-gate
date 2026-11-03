@@ -1,0 +1,99 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/aidless/eval-gate/schemas/verdict.schema.json",
+  "title": "eval-gate verdict",
+  "description": "runs/<run_id>/verdict.json：判定、主指标、CI、逐条 gate 结果、层状态。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "run_id",
+    "verdict",
+    "severity",
+    "primary_metric",
+    "baseline",
+    "delta",
+    "gates",
+    "layers",
+    "attribution",
+    "why"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"type": "string", "const": "1.0.0"},
+    "run_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,64}$"},
+    "verdict": {"type": "string", "enum": ["PASS", "REVIEW", "FAIL", "INCOMPLETE", "BLOCK"]},
+    "severity": {"type": "string", "enum": ["info", "review", "fail", "incomplete", "block"]},
+    "primary_metric": {"$ref": "#/$defs/metric"},
+    "baseline": {"$ref": "#/$defs/metric"},
+    "delta": {"$ref": "#/$defs/delta"},
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "observed", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "rule": {"type": "string"},
+          "observed": {"type": ["number", "string", "null"]},
+          "result": {"type": "string", "enum": ["pass", "fail", "not_comparable", "absent", "skipped"]},
+          "verdict": {"type": "string", "enum": ["REVIEW", "FAIL", "INCOMPLETE", "BLOCK"]},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "layers": {"type": "object"},
+    "attribution": {"type": "string"},
+    "why": {"type": "string"},
+    "matched_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["gate", "verdict"],
+        "additionalProperties": false,
+        "properties": {
+          "gate": {"type": "string"},
+          "verdict": {"type": "string"}
+        }
+      }
+    },
+    "metrics": {"type": "object"}
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "required": ["name", "value", "ci95", "n"],
+      "additionalProperties": true,
+      "properties": {
+        "name": {"type": "string"},
+        "value": {"type": "number", "minimum": 0, "maximum": 1},
+        "ci95": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"type": "number", "minimum": 0, "maximum": 1}
+        },
+        "n": {"type": "integer", "minimum": 0}
+      }
+    },
+    "delta": {
+      "type": "object",
+      "required": ["value", "ci95", "n", "comparable"],
+      "additionalProperties": true,
+      "properties": {
+        "value": {"type": "number", "minimum": -1, "maximum": 1},
+        "ci95": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"type": "number", "minimum": -1, "maximum": 1}
+        },
+        "n": {"type": "integer", "minimum": 0},
+        "comparable": {"type": "boolean"},
+        "iterations": {"type": "integer", "minimum": 1},
+        "seed": {"type": "integer"}
+      }
+    }
+  }
+}

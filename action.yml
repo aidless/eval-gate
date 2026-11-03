@@ -1,0 +1,94 @@
+name: "eval-gate"
+description: "按置信区间放行/阻断 LLM 评测改动，并输出归因表"
+author: "liuzewen"
+branding:
+  icon: "shield"
+  color: "orange"
+
+inputs:
+  dataset:
+    description: "评测集 JSONL"
+    required: true
+  predictions:
+    description: "候选预测 JSONL"
+    required: true
+  baseline-predictions:
+    description: "基线预测 JSONL"
+    required: true
+  tools:
+    description: "MCP 工具清单 JSON（可选）"
+    required: false
+    default: ""
+  tool-snapshot:
+    description: "工具 digest 快照 JSON（可选）"
+    required: false
+    default: ""
+  changed-files:
+    description: "本 PR 改动的文件，空格分隔"
+    required: false
+    default: ""
+  min-pass:
+    description: "绝对通过率下限"
+    required: false
+    default: "0.80"
+  max-regression:
+    description: "允许的最大回退幅度"
+    required: false
+    default: "0.03"
+  min-n:
+    description: "最小样本量"
+    required: false
+    default: "400"
+  fail-on:
+    description: "block / review / never"
+    required: false
+    default: "block"
+
+outputs:
+  verdict:
+    description: "PASS / REVIEW / FAIL / INCOMPLETE / BLOCK"
+    value: ${{ steps.gate.outputs.verdict }}
+  pass-rate:
+    description: "权威 rubric 通过率"
+    value: ${{ steps.gate.outputs.pass-rate }}
+  pass-rate-ci:
+    description: "通过率 95% Wilson 区间"
+    value: ${{ steps.gate.outputs.pass-rate-ci }}
+  delta:
+    description: "候选 − 基线的配对差值"
+    value: ${{ steps.gate.outputs.delta }}
+  delta-ci:
+    description: "差值 95% bootstrap 区间"
+    value: ${{ steps.gate.outputs.delta-ci }}
+  run-id:
+    description: "本次运行 id"
+    value: ${{ steps.gate.outputs.run-id }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: gate
+      shell: bash
+      run: |
+        set -euo pipefail
+        cd "${{ github.workspace }}"
+        TOOLS_ARGS=""
+        if [ -n "${{ inputs.tools }}" ]; then
+          TOOLS_ARGS="--tools ${{ inputs.tools }}"
+        fi
+        SNAPSHOT_ARGS=""
+        if [ -n "${{ inputs.tool-snapshot }}" ]; then
+          SNAPSHOT_ARGS="--tool-snapshot ${{ inputs.tool-snapshot }}"
+        fi
+        PYTHONPATH="${{ github.action_path }}:${PYTHONPATH:-}" python3 -m eval_gate.cli run \
+          --dataset "${{ inputs.dataset }}" \
+          --predictions "${{ inputs.predictions }}" \
+          --baseline-predictions "${{ inputs.baseline-predictions }}" \
+          $TOOLS_ARGS $SNAPSHOT_ARGS \
+          --changed-files ${{ inputs.changed-files }} \
+          --min-pass "${{ inputs.min-pass }}" \
+          --max-regression "${{ inputs.max-regression }}" \
+          --min-n "${{ inputs.min-n }}" \
+          --fail-on "${{ inputs.fail-on }}" \
+          --out "eval-gate-runs/${{ github.run_id }}" \
+          --github-output "$GITHUB_OUTPUT"

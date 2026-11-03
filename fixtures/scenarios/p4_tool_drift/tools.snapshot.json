@@ -1,0 +1,22 @@
+{
+  "digests": {
+    "lookup_order": "90d41fb0c2fd9a14c4c2c8bbee7f3893876706ee80e5aed218e60a1f4a21db65"
+  },
+  "tools": {
+    "lookup_order": {
+      "description": "Look up an order by id. Returns status and ETA.",
+      "inputSchema": {
+        "properties": {
+          "order_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_id"
+        ],
+        "type": "object"
+      },
+      "name": "lookup_order"
+    }
+  }
+}

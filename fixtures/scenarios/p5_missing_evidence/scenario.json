@@ -1,0 +1,13 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "prompts/helpfulness.md"
+  ],
+  "expected": {
+    "verdict": "INCOMPLETE"
+  },
+  "head_sha": "unknown",
+  "name": "p5_missing_evidence",
+  "post": "delete:evidence/per_item.jsonl",
+  "predictions": "predictions.jsonl"
+}
