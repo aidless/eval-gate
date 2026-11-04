@@ -20,14 +20,14 @@ eval-gate quickstart
   PASS      p1_pass            同分布小改动：+1.25pp，CI 未跨过 0，放行
   BLOCK     p2_regression      回退 -7.29pp，CI 上限仍低于 -3%，阻断
   FAIL      p3_false_green     答案变长骗过 naive 检查，但权威评分 79.17% 未过 80% 下限
-  BLOCK     p4_tool_drift      工具描述新增读取 ~/.aws/credentials，漂移规则阻断
+  BLOCK     p4_tool_drift      工具描述新增读取云厂商凭据文件，漂移规则阻断
 
 4/4 符合预期，耗时 1.12s（bootstrap=2000，seed=20261103）
 ```
 
-本机一次实测 1.12s；冷启动或机器负载高时可到 2 秒左右。完整终端输出见 [docs/quickstart.svg](docs/quickstart.svg)。
+干净 clone 一次实测 1.12s；冷启动或机器负载高时可到 2 秒左右。上面的终端输出为节选，完整原文见 [docs/quickstart.svg](docs/quickstart.svg)。
 
-其中 p3 的 79.17% 是内置 rubric 的评分（`support-qa-zh` v0.1，见 [rubric.py](eval_gate/rubric.py)；naive 长度检查会给 100% 全绿）；p4 的漂移规则指工具描述里新增了敏感路径。
+其中 p3 的 79.17% 是内置 rubric 的评分（`support-qa-zh` v0.1，见 [rubric.py](eval_gate/rubric.py)；naive 长度检查会给 100% 全绿）；p4 的漂移规则指工具描述里新增了敏感凭据路径（演示样例，原文见 [docs/quickstart.svg](docs/quickstart.svg)）。
 
 > PyPI 上还没有 `eval-gate`（当前返回 404）。发布前请用上面的 `pip install .`；发布后再改成 `pip install eval-gate`。
 
