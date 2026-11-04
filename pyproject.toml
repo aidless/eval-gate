@@ -5,7 +5,7 @@ description = "Statistical gate for LLM eval changes: paired bootstrap CIs, bloc
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [{ name = "liuzewen" }]
+authors = [{ name = "aidless" }]
 keywords = ["llm", "evaluation", "ci", "statistics", "regression-testing", "agents"]
 dependencies = []
 classifiers = [

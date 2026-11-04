@@ -1,6 +1,6 @@
 name: "eval-gate"
 description: "按置信区间放行/阻断 LLM 评测改动，并输出归因表"
-author: "liuzewen"
+author: "aidless"
 branding:
   icon: "shield"
   color: "orange"
