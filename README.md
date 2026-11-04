@@ -3,7 +3,7 @@
 **同一批题，通过率从 87.92% 掉到 80.63%，这个 PR 到底该不该合？** eval-gate 用配对 bootstrap 置信区间判断这个差值是不是噪声，输出 `PASS / REVIEW / FAIL / BLOCK / INCOMPLETE`，并附一张回退归因表。
 
 [![ci](https://github.com/aidless/eval-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/aidless/eval-gate/actions/workflows/ci.yml)
-![python](https://img.shields.io/badge/python-3.9%2B-blue)
+![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![status](https://img.shields.io/badge/status-v0.2.0%20pre--release-orange)
 
 ## 30 秒跑起来
@@ -155,4 +155,4 @@ python3 -m eval_gate.cli demo              # 10 场景，10/10
 python3 scripts/bench_100k.py              # 10 万题实测 0.95–1.02s
 ```
 
-零第三方依赖，Python 3.9–3.12（CI 矩阵全绿），`py.typed` 已随包分发，MIT。
+零第三方依赖，Python 3.10–3.12（CI 矩阵全绿），`py.typed` 已随包分发，MIT。
