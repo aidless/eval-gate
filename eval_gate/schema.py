@@ -1,8 +1,8 @@
 """最小 JSON Schema 校验器（零依赖）。
 
 来源（vendor，MIT）：
-    /home/liuzewen/gh-publication-audit-20261029/agent-reliability/contracts/jsonschema_mini.py
-    @ e86a865bb9c41e97faa2dc1fddc2a9cb8ab44420
+    agent-reliability/contracts/jsonschema_mini.py
+    @ e86a865bb9c41e97faa2dc1fddc2a9cb8ab44420（上游仓见 VENDOR.md）
 
 支持子集：type / required / properties / additionalProperties / items /
 pattern / enum / const / minimum / maximum / minItems / maxItems /

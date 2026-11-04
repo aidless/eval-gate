@@ -1,9 +1,9 @@
 """工具面：扫描 MCP 工具定义 + 检测漂移。
 
 来源（vendor，MIT）：
-    /home/liuzewen/mcp-guard/guard/rules.py  @ 17ce95732b2e28af9e98e1ec7c3ddcbd099fb164
-    /home/liuzewen/mcp-guard/guard/drift.py  @ 同上
-    /home/liuzewen/mcp-guard/guard/scan.py   @ 同上
+    mcp-guard/guard/rules.py  @ 17ce95732b2e28af9e98e1ec7c3ddcbd099fb164
+    mcp-guard/guard/drift.py  @ 同上
+    mcp-guard/guard/scan.py   @ 同上（上游仓见 VENDOR.md）
 
 改动：只保留 eval-gate 用到的函数；漂移比较仍然比 (规则 id, anchor)，
 而不是整段命中文本——否则「read the id_rsa」→「read your id_rsa」这种
