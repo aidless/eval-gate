@@ -1,6 +1,7 @@
 import unittest
 
-from eval_gate.stats import (ci_width, overlap_rate, paired_bootstrap_delta,
+from eval_gate.stats import (alpha_to_z, ci_width, mde_from_variance, overlap_rate,
+                             paired_bootstrap_delta, paired_delta_ci,
                              wilson_interval)
 
 
@@ -81,6 +82,79 @@ class OverlapTests(unittest.TestCase):
 
     def test_empty_candidate(self):
         self.assertEqual(overlap_rate([], ["a"]), 0.0)
+
+
+def _fixture():
+    cand = {f"i{i}": 1.0 if (i * 7) % 10 < 9 else 0.0 for i in range(120)}
+    base = {f"i{i}": 1.0 if (i * 7) % 10 < 7 else 0.0 for i in range(120)}
+    fam = {f"i{i}": f"f{i % 4}" for i in range(120)}
+    return cand, base, fam
+
+
+class GoldenReproducibilityTests(unittest.TestCase):
+    """固定 seed 的数值必须逐位一致：跨机器/跨 3.9–3.12 也不能漂。"""
+
+    def test_bootstrap_golden_values(self):
+        cand, base, fam = _fixture()
+        stats = paired_bootstrap_delta(cand, base, fam, iterations=500,
+                                       seed=20261103)
+        self.assertEqual(stats["delta"], 0.2)
+        self.assertEqual(stats["ci95"],
+                         [0.13333333333333333, 0.2710416666666665])
+        self.assertEqual(stats["n"], 120)
+        self.assertEqual(stats["families"], 4)
+
+    def test_normal_approximation_golden_values(self):
+        cand, base, fam = _fixture()
+        stats = paired_delta_ci(cand, base, fam, iterations=500,
+                                seed=20261103, method="normal")
+        self.assertEqual(stats["delta"], 0.2)
+        self.assertEqual(stats["ci95"],
+                         [0.1272087650151985, 0.2727912349848015])
+        self.assertEqual(stats["method"], "normal")
+
+
+class NormalFallbackTests(unittest.TestCase):
+    def test_auto_uses_normal_when_work_too_large(self):
+        cand, base, fam = _fixture()
+        stats = paired_delta_ci(cand, base, fam, iterations=10_000,
+                                max_bootstrap_work=100_000)
+        self.assertEqual(stats["method"], "normal")
+        self.assertEqual(stats["iterations"], 0)
+
+    def test_auto_uses_bootstrap_for_small_work(self):
+        cand, base, fam = _fixture()
+        stats = paired_delta_ci(cand, base, fam, iterations=500)
+        self.assertEqual(stats["method"], "bootstrap")
+        self.assertEqual(stats["iterations"], 500)
+
+    def test_bootstrap_and_normal_are_close(self):
+        cand, base, fam = _fixture()
+        boot = paired_delta_ci(cand, base, fam, iterations=2_000, seed=7)
+        norm = paired_delta_ci(cand, base, fam, iterations=2_000, seed=7,
+                               method="normal")
+        self.assertLess(abs(boot["ci95"][0] - norm["ci95"][0]), 0.02)
+        self.assertLess(abs(boot["ci95"][1] - norm["ci95"][1]), 0.02)
+
+
+class MdeTests(unittest.TestCase):
+    def test_known_mde_value(self):
+        # (1.959964 + 0.841621) * sqrt(1e-4) = 0.0280159
+        self.assertAlmostEqual(mde_from_variance(0.0001), 0.0280159, places=6)
+
+    def test_zero_variance_has_zero_mde(self):
+        self.assertEqual(mde_from_variance(0.0), 0.0)
+
+    def test_mde_available_from_interval(self):
+        cand, base, fam = _fixture()
+        stats = paired_delta_ci(cand, base, fam, iterations=500, seed=20261103)
+        self.assertGreater(stats["mde"], 0.0)
+        self.assertAlmostEqual(stats["discordant"], 24)
+
+    def test_alpha_to_z_is_two_sided(self):
+        self.assertAlmostEqual(alpha_to_z(0.05), 1.959963984540054, places=6)
+        self.assertAlmostEqual(alpha_to_z(0.025), 2.2414027264652865, places=6)
+        self.assertGreater(alpha_to_z(0.01), alpha_to_z(0.05))
 
 
 if __name__ == "__main__":

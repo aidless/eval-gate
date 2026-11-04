@@ -1,12 +1,13 @@
 {
   "baseline_predictions": "baseline_predictions.jsonl",
   "changed_files": [
-    "prompts/verbosity.md"
+    "prompts/helpfulness.md"
   ],
   "expected": {
-    "verdict": "FAIL"
+    "verdict": "PASS"
   },
   "head_sha": "unknown",
-  "name": "p3_false_green",
+  "name": "p1_pass",
+  "note": "同分布小改动：+1.25pp，CI 未跨过 0，放行",
   "predictions": "predictions.jsonl"
 }

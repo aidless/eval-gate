@@ -4,9 +4,11 @@
     "prompts/helpfulness.md"
   ],
   "expected": {
-    "verdict": "PASS"
+    "verdict": "INCOMPLETE"
   },
   "head_sha": "unknown",
-  "name": "p1_pass",
+  "name": "p5_missing_evidence",
+  "note": "证据被删：verify 重算为 INCOMPLETE，不能降级为 PASS",
+  "post": "delete:evidence/per_item.jsonl",
   "predictions": "predictions.jsonl"
 }

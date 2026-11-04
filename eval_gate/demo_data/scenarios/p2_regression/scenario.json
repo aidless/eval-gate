@@ -8,5 +8,6 @@
   },
   "head_sha": "unknown",
   "name": "p2_regression",
+  "note": "回退 -7.29pp，CI 上限仍低于 -3%，阻断",
   "predictions": "predictions.jsonl"
 }

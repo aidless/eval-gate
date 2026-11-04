@@ -9,6 +9,7 @@ import json
 import pathlib
 import shutil
 import sys
+from math import gcd
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -61,7 +62,9 @@ def build_dataset() -> list[dict]:
     for fam_index, (family, topic, keywords) in enumerate(FAMILIES, start=1):
         doc = f"doc-{family}-a"
         for index in range(1, 19):
-            prefix = PREFIXES[(index - 1) % len(PREFIXES)]
+            # 题面必须唯一：同一题面换 id 会被当成两道题，虚增 n、压低区间宽度。
+            # 5×5 的 prefix/suffix 组合足够 18 条不重复（index-1 落在 0..17）。
+            prefix = PREFIXES[(index - 1) // len(SUFFIXES) % len(PREFIXES)]
             suffix = SUFFIXES[(index - 1) % len(SUFFIXES)]
             rows.append({
                 "id": f"F{fam_index:02d}-{index:03d}",
@@ -197,8 +200,155 @@ def write_json(path: pathlib.Path, obj: dict) -> None:
                     encoding="utf-8")
 
 
+def _ext_dataset(prefix: str, families: list[tuple[str, str]],
+                 per_family: int) -> list[dict]:
+    """外部判分器场景的数据集：题面唯一，family 用于分层 bootstrap。"""
+    rows: list[dict] = []
+    for fam_index, (family, desc) in enumerate(families, start=1):
+        for index in range(1, per_family + 1):
+            rows.append({
+                "id": f"{prefix}-{fam_index:02d}-{index:03d}",
+                "family": family,
+                "input": f"{desc}：第 {index} 题",
+                "reference": "参考答案（合成示例，仅用于演示判决层）",
+                "answerable": True,
+                "source": "synthetic_external_v0",
+            })
+    return rows
+
+
+def _ext_predictions(dataset: list[dict], *, passes: int, naive_extra: int = 0,
+                     l1_ids: tuple[str, ...] = (), scorer: str | None = None,
+                     k: int | None = None, model: str = "demo-model-v1") -> list[dict]:
+    """生成「已由外部判分器打分」的 predictions。
+
+    pass 分布用与 n 互质的 stride 打散，避免失败样本全落在最后一个 family。
+    （早期固定 stride=7 在 n 与其不互质时只覆盖少数位置，会悄悄压小 pass 数。）
+    """
+    n = len(dataset)
+    # stride 必须与 n 互质，否则 order 只覆盖少数位置，pass 数会被悄悄压小。
+    stride = 7
+    while gcd(stride, n) != 1:
+        stride += 1
+    order = [(index * stride) % n for index in range(n)]
+    pass_positions = set(order[:passes])
+    extra_budget = naive_extra
+    l1_set = set(l1_ids)
+    rows: list[dict] = []
+    for position, item in enumerate(dataset):
+        passed = position in pass_positions
+        naive = passed
+        if not passed and extra_budget > 0:
+            naive = True
+            extra_budget -= 1
+        row: dict = {
+            "id": item["id"],
+            "output": "答案正确" if passed else "答案错误",
+            "pass": passed,
+            "naive_pass": naive,
+            "l1_failures": ["L1.grounding"] if item["id"] in l1_set else [],
+            "model": model,
+            "prompt_version": "v1",
+        }
+        if scorer is not None:
+            row["scorer_version"] = scorer
+        if k is not None:
+            row["k"] = k
+        rows.append(row)
+    return rows
+
+
+def make_external_scenarios(scenarios: pathlib.Path) -> None:
+    """p6–p10：来自真实评测场景的五个用例（数据仍是合成的，判决逻辑是真的）。"""
+    # p6：数学题，候选 pass@1 / 基线 pass@5 —— k 不一致，直接拒绝比较。
+    math_ds = _ext_dataset("M", [("arithmetic", "四则运算"), ("algebra", "代数方程"),
+                                 ("geometry", "几何证明")], 14)
+    math_cand = _ext_predictions(math_ds, passes=25, k=1)
+    math_base = _ext_predictions(math_ds, passes=35, k=5, model="demo-model-baseline")
+    _write_external(scenarios, "p6_math_passk", math_ds, math_cand, math_base,
+                    changed=["evals/pass_at_k.md"],
+                    expected={"error_contains": "pass@1"},
+                    note="候选 pass@1 59.5%、基线 pass@5 83.3%：旧比较读成『差 24pp』，实际口径不同",
+                    dataset_rel="scenarios/p6_math_passk/dataset.jsonl")
+
+    # p7：代码题隐藏用例只有 120 条 —— 提升 5pp，但 n 不够，只能 REVIEW。
+    code_ds = _ext_dataset("C", [("bugfix", "修复缺陷"), ("feature", "实现新功能"),
+                                 ("refactor", "重构不改行为")], 40)
+    code_cand = _ext_predictions(code_ds, passes=96)
+    code_base = _ext_predictions(code_ds, passes=90, model="demo-model-baseline")
+    _write_external(scenarios, "p7_code_hidden", code_ds, code_cand, code_base,
+                    changed=["evals/hidden_tests.json"],
+                    expected={"verdict": "REVIEW"},
+                    note="80% vs 75% 看似提升 5pp；n=120 的 95% 区间两端都跨过阈值",
+                    dataset_rel="scenarios/p7_code_hidden/dataset.jsonl")
+
+    # p8：RAG 硬负例 —— 天真的『答案包含关键词』通过率 96%，带引用的只有 74.6%。
+    rag_ds = _ext_dataset("R", [("retrieval_qa", "单文档问答"),
+                                ("multi_doc", "跨文档证据合并"),
+                                ("no_answer", "文档无答案应拒答")], 160)
+    rag_cand = _ext_predictions(rag_ds, passes=358, naive_extra=103)
+    rag_base = _ext_predictions(rag_ds, passes=355, naive_extra=72,
+                                model="demo-model-baseline")
+    _write_external(scenarios, "p8_rag_hard", rag_ds, rag_cand, rag_base,
+                    changed=["prompts/grounding.md"],
+                    expected={"verdict": "FAIL"},
+                    note="天真通过率 +7pp，看似进步；带引用的绝对通过率仍低于 80%",
+                    dataset_rel="scenarios/p8_rag_hard/dataset.jsonl")
+
+    # p9：多轮工具调用 —— 总体 +1.9pp，但升级路径的 L1 硬失败从 0 涨到 6。
+    tool_ds = _ext_dataset("T", [("booking", "改签预订"), ("refund", "退款查询"),
+                                 ("lookup", "订单检索"), ("escalation", "转人工升级"),
+                                 ("smalltalk", "闲聊收尾")], 96)
+    n9 = len(tool_ds)
+    order9 = [(index * 7) % n9 for index in range(n9)]
+    cand_pass9 = set(order9[:432])
+    esc_fail = [item["id"] for position, item in enumerate(tool_ds)
+                if item["family"] == "escalation" and position not in cand_pass9]
+    assert len(esc_fail) >= 6, esc_fail
+    tool_cand = _ext_predictions(tool_ds, passes=432, l1_ids=tuple(esc_fail[:6]))
+    tool_base = _ext_predictions(tool_ds, passes=423, model="demo-model-baseline")
+    _write_external(scenarios, "p9_tool_multiturn", tool_ds, tool_cand, tool_base,
+                    changed=["tools/escalate.json"],
+                    expected={"verdict": "BLOCK"},
+                    note="整体 90% vs 88.1% 更好，但升级路径硬失败 0→6：安全回退优先",
+                    dataset_rel="scenarios/p9_tool_multiturn/dataset.jsonl")
+
+    # p10：判分器校准 —— 换了 judge 版本，-5pp 不能归因给模型，只能 REVIEW。
+    judge_ds = _ext_dataset("J", [("math", "数学推理"), ("code", "代码执行"),
+                                  ("rag", "检索问答")], 160)
+    judge_cand = _ext_predictions(judge_ds, passes=403, scorer="judge-v2")
+    judge_base = _ext_predictions(judge_ds, passes=427, scorer="judge-v1",
+                                  model="demo-model-baseline")
+    _write_external(scenarios, "p10_judge_calibration", judge_ds, judge_cand, judge_base,
+                    changed=["scoring/judge_v2.md"],
+                    expected={"verdict": "REVIEW"},
+                    note="判分器 v1→v2：旧做法直接 BLOCK -5pp，实际是判分口径变了",
+                    dataset_rel="scenarios/p10_judge_calibration/dataset.jsonl")
+
+
+def _write_external(scenarios: pathlib.Path, name: str, dataset: list[dict],
+                    candidate: list[dict], baseline: list[dict], *,
+                    changed: list[str], expected: dict, note: str,
+                    dataset_rel: str) -> None:
+    folder = scenarios / name
+    folder.mkdir(parents=True, exist_ok=True)
+    write_jsonl(folder / "dataset.jsonl", dataset)
+    write_jsonl(folder / "predictions.jsonl", candidate)
+    write_jsonl(folder / "baseline_predictions.jsonl", baseline)
+    write_json(folder / "scenario.json", {
+        "name": name,
+        "dataset": dataset_rel,
+        "predictions": "predictions.jsonl",
+        "baseline_predictions": "baseline_predictions.jsonl",
+        "changed_files": changed,
+        "head_sha": "unknown",
+        "expected": expected,
+        "note": note,
+    })
+
+
 def main() -> int:
-    fixtures = ROOT / "fixtures"
+    fixtures = ROOT / "eval_gate" / "demo_data"
     scenarios = fixtures / "scenarios"
     if scenarios.exists():
         shutil.rmtree(scenarios)
@@ -219,13 +369,14 @@ def main() -> int:
 
     def write_scenario(name: str, predictions: list[dict], baseline_rows: list[dict],
                        changed: list[str], expected: str, *, tools: bool = False,
-                       post: str | None = None) -> None:
+                       post: str | None = None, note: str = "") -> None:
         folder = scenarios / name
         folder.mkdir(parents=True, exist_ok=True)
         write_jsonl(folder / "predictions.jsonl", predictions)
         write_jsonl(folder / "baseline_predictions.jsonl", baseline_rows)
         scenario = {
             "name": name,
+            "note": note,
             "predictions": "predictions.jsonl",
             "baseline_predictions": "baseline_predictions.jsonl",
             "changed_files": changed,
@@ -239,13 +390,18 @@ def main() -> int:
             scenario["post"] = post
         write_json(folder / "scenario.json", scenario)
 
-    write_scenario("p1_pass", p1, baseline, ["prompts/helpfulness.md"], "PASS")
-    write_scenario("p2_regression", p2, baseline, ["prompts/grounding.md"], "BLOCK")
-    write_scenario("p3_false_green", p3, p3_baseline, ["prompts/verbosity.md"], "FAIL")
+    write_scenario("p1_pass", p1, baseline, ["prompts/helpfulness.md"], "PASS",
+                   note="同分布小改动：+1.25pp，CI 未跨过 0，放行")
+    write_scenario("p2_regression", p2, baseline, ["prompts/grounding.md"], "BLOCK",
+                   note="回退 -7.29pp，CI 上限仍低于 -3%，阻断")
+    write_scenario("p3_false_green", p3, p3_baseline, ["prompts/verbosity.md"], "FAIL",
+                   note="答案变长骗过 naive 检查，但权威评分 79.17% 未过 80% 下限")
     write_scenario("p4_tool_drift", p1, baseline, ["tools/lookup_order.json"], "BLOCK",
-                   tools=True)
+                   tools=True, note="工具描述新增读取 ~/.aws/credentials，漂移规则阻断")
     write_scenario("p5_missing_evidence", p1, baseline, ["prompts/helpfulness.md"],
-                   "INCOMPLETE", post="delete:evidence/per_item.jsonl")
+                   "INCOMPLETE", post="delete:evidence/per_item.jsonl",
+                   note="证据被删：verify 重算为 INCOMPLETE，不能降级为 PASS")
+    make_external_scenarios(scenarios)
 
     baseline_tool = {
         "name": "lookup_order",
@@ -267,7 +423,8 @@ def main() -> int:
     write_json(p4 / "tools.snapshot.json", build_snapshot([baseline_tool]))
 
     print(f"dataset: {len(dataset)} 条，20 families")
-    print(f"baseline: {sum(1 for r in baseline if r)} 条预测；p1/p2/p3/p4/p5 已生成")
+    print(f"baseline: {sum(1 for r in baseline if r)} 条预测；"
+          "p1–p5 内置 rubric，p6–p10 外部判分器场景已生成")
     return 0
 
 

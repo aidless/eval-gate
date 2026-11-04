@@ -1,17 +1,50 @@
 [project]
 name = "eval-gate"
-version = "0.1.0"
-description = "Statistical gate for LLM eval changes: CI-based verdicts, attribution, tamper-resistant evidence"
-requires-python = ">=3.10"
-license = {text = "MIT"}
+version = "0.2.0"
+description = "Statistical gate for LLM eval changes: paired bootstrap CIs, blocking verdicts, tamper-resistant evidence"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+authors = [{ name = "liuzewen" }]
+keywords = ["llm", "evaluation", "ci", "statistics", "regression-testing", "agents"]
 dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/aidless/eval-gate"
+Repository = "https://github.com/aidless/eval-gate"
+Issues = "https://github.com/aidless/eval-gate/issues"
 
 [project.scripts]
 eval-gate = "eval_gate.cli:main"
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["eval_gate*"]
+
+[tool.setuptools.package-data]
+eval_gate = [
+    "py.typed",
+    "schemas/*.json",
+    "demo_data/*.jsonl",
+    "demo_data/scenarios/*/*.json",
+    "demo_data/scenarios/*/*.jsonl",
+]
+
+[tool.mypy]
+strict = true
+files = ["eval_gate", "tests/test_zero_deps.py"]
+python_version = "3.10"

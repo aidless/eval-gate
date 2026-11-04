@@ -1,13 +1,13 @@
 {
   "baseline_predictions": "baseline_predictions.jsonl",
   "changed_files": [
-    "prompts/helpfulness.md"
+    "prompts/verbosity.md"
   ],
   "expected": {
-    "verdict": "INCOMPLETE"
+    "verdict": "FAIL"
   },
   "head_sha": "unknown",
-  "name": "p5_missing_evidence",
-  "post": "delete:evidence/per_item.jsonl",
+  "name": "p3_false_green",
+  "note": "答案变长骗过 naive 检查，但权威评分 79.17% 未过 80% 下限",
   "predictions": "predictions.jsonl"
 }

@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "evals/hidden_tests.json"
+  ],
+  "dataset": "scenarios/p7_code_hidden/dataset.jsonl",
+  "expected": {
+    "verdict": "REVIEW"
+  },
+  "head_sha": "unknown",
+  "name": "p7_code_hidden",
+  "note": "80% vs 75% 看似提升 5pp；n=120 的 95% 区间两端都跨过阈值",
+  "predictions": "predictions.jsonl"
+}

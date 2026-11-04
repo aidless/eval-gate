@@ -8,6 +8,7 @@
   },
   "head_sha": "unknown",
   "name": "p4_tool_drift",
+  "note": "工具描述新增读取 ~/.aws/credentials，漂移规则阻断",
   "predictions": "predictions.jsonl",
   "tool_snapshot": "tools.snapshot.json",
   "tools": "tools.candidate.json"

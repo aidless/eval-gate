@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "tools/escalate.json"
+  ],
+  "dataset": "scenarios/p9_tool_multiturn/dataset.jsonl",
+  "expected": {
+    "verdict": "BLOCK"
+  },
+  "head_sha": "unknown",
+  "name": "p9_tool_multiturn",
+  "note": "整体 90% vs 88.1% 更好，但升级路径硬失败 0→6：安全回退优先",
+  "predictions": "predictions.jsonl"
+}

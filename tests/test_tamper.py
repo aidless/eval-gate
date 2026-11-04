@@ -9,7 +9,7 @@ from eval_gate.contract import write_json
 from eval_gate.runner import run_gate, verify_run
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
-FIXTURES = HERE / "fixtures"
+FIXTURES = HERE / "eval_gate" / "demo_data"
 
 
 def run_scenario(out_dir: pathlib.Path, name: str, iterations: int = 500) -> dict:

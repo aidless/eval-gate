@@ -15,7 +15,8 @@
     "gates",
     "layers",
     "attribution",
-    "why"
+    "why",
+    "flags"
   ],
   "additionalProperties": false,
   "properties": {
@@ -58,6 +59,11 @@
         }
       }
     },
+    "flags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "不改判决的边界披露：mde_exceeds_tolerance / threshold_edge / ci_method:normal / single_family_no_stratification"
+    },
     "metrics": {"type": "object"}
   },
   "$defs": {
@@ -91,8 +97,12 @@
         },
         "n": {"type": "integer", "minimum": 0},
         "comparable": {"type": "boolean"},
-        "iterations": {"type": "integer", "minimum": 1},
-        "seed": {"type": "integer"}
+        "iterations": {"type": "integer", "minimum": 0},
+        "seed": {"type": "integer"},
+        "method": {"type": "string", "enum": ["bootstrap", "normal", "empty"]},
+        "mde": {"type": "number", "minimum": 0, "maximum": 2},
+        "variance": {"type": "number", "minimum": 0},
+        "discordant": {"type": "integer", "minimum": 0}
       }
     }
   }

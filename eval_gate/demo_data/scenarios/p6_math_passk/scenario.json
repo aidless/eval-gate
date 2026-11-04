@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "evals/pass_at_k.md"
+  ],
+  "dataset": "scenarios/p6_math_passk/dataset.jsonl",
+  "expected": {
+    "error_contains": "pass@1"
+  },
+  "head_sha": "unknown",
+  "name": "p6_math_passk",
+  "note": "候选 pass@1 59.5%、基线 pass@5 83.3%：旧比较读成『差 24pp』，实际口径不同",
+  "predictions": "predictions.jsonl"
+}

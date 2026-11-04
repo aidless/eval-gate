@@ -10,14 +10,45 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: demo（10 个场景，逐场景核对 expected）
+        run: python3 -m eval_gate.cli demo --out runs/demo
+      - name: rerun 20x (flake check)
+        run: python3 scripts/rerun_check.py
+
+  types:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: unit tests
-        run: python3 -m unittest discover -s tests -v
-      - name: demo 5 verdicts
-        run: python3 -m eval_gate.cli demo --fixtures fixtures --out runs/demo
-      - name: rerun 20x (flake check)
-        run: python3 scripts/rerun_check.py
+      - name: install mypy
+        run: python3 -m pip install "mypy>=1.8"
+      - name: mypy strict（零错误）
+        run: python3 -m mypy
+
+  wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build wheel
+        run: python3 -m pip install build && python3 -m build --wheel
+      - name: clean venv install + quickstart
+        run: |
+          python3 -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl
+          /tmp/venv/bin/eval-gate quickstart --out /tmp/qs

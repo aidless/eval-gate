@@ -5,12 +5,14 @@ import unittest
 
 from eval_gate.contract import (read_jsonl, sha256_file, sha256_text,
                                 validate_instance, write_jsonl)
+from eval_gate.errors import EvalGateError
 
 HERE = pathlib.Path(__file__).resolve().parent.parent
 
 
 def valid_run() -> dict:
     return {
+        "schema_version": "1.0.0",
         "run_id": "pr-abc-12345678",
         "created_utc": "2026-11-03T00:00:00+00:00",
         "rules_version": "a" * 16,
@@ -51,6 +53,7 @@ def valid_verdict() -> dict:
         "layers": {"input_guard": "absent", "output_audit": "present"},
         "attribution": "attribution.md",
         "why": "ok",
+        "flags": [],
     }
 
 
@@ -76,7 +79,7 @@ class RunSchemaTests(unittest.TestCase):
         self.assertNotEqual(validate_instance(broken, "run.schema.json"), [])
 
     def test_real_fixture_run_meta_validates(self):
-        self.assertTrue((HERE / "fixtures" / "dataset.jsonl").exists())
+        self.assertTrue((HERE / "eval_gate" / "demo_data" / "dataset.jsonl").exists())
         self.assertEqual(validate_instance(valid_run(), "run.schema.json"), [])
 
 
@@ -107,9 +110,10 @@ class IOTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = pathlib.Path(tmp) / "bad.jsonl"
             path.write_text('{"a": 1}\nnope\n', encoding="utf-8")
-            with self.assertRaises(ValueError) as ctx:
+            with self.assertRaises(EvalGateError) as ctx:
                 read_jsonl(path)
-            self.assertIn(":2", str(ctx.exception))
+            self.assertIn("第 2 行", str(ctx.exception))
+            self.assertIn("next:", ctx.exception.render())
 
     def test_sha256_is_stable(self):
         self.assertEqual(sha256_text("中文"), sha256_text("中文"))

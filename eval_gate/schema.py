@@ -12,9 +12,11 @@ minLength / maxLength / 同文档 $ref。
 from __future__ import annotations
 
 import re
+from typing import Any
 
 
-def validate(instance, schema, path: str = "$", root: dict | None = None) -> list[str]:
+def validate(instance: Any, schema: dict[str, Any], path: str = "$",
+             root: dict[str, Any] | None = None) -> list[str]:
     errors: list[str] = []
     if not isinstance(schema, dict):
         return errors
@@ -85,10 +87,10 @@ def validate(instance, schema, path: str = "$", root: dict | None = None) -> lis
     return errors
 
 
-def _resolve_ref(ref: str, root: dict):
+def _resolve_ref(ref: str, root: dict[str, Any]) -> Any:
     if not ref.startswith("#/"):
         return None
-    node = root
+    node: Any = root
     for part in ref[2:].split("/"):
         part = part.replace("~1", "/").replace("~0", "~")
         if isinstance(node, dict) and part in node:
@@ -100,7 +102,7 @@ def _resolve_ref(ref: str, root: dict):
     return node
 
 
-def _is_type(instance, type_name: str) -> bool:
+def _is_type(instance: Any, type_name: str) -> bool:
     if type_name == "object":
         return isinstance(instance, dict)
     if type_name == "array":

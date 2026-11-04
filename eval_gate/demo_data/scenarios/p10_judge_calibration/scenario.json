@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "scoring/judge_v2.md"
+  ],
+  "dataset": "scenarios/p10_judge_calibration/dataset.jsonl",
+  "expected": {
+    "verdict": "REVIEW"
+  },
+  "head_sha": "unknown",
+  "name": "p10_judge_calibration",
+  "note": "判分器 v1→v2：旧做法直接 BLOCK -5pp，实际是判分口径变了",
+  "predictions": "predictions.jsonl"
+}

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620" role="img" aria-label="eval-gate quickstart 的真实终端输出">
+  <rect width="980" height="620" rx="14" fill="#0d1117"/>
+  <rect width="980" height="42" rx="14" fill="#161b22"/>
+  <rect y="28" width="980" height="14" fill="#161b22"/>
+  <circle cx="24" cy="21" r="6" fill="#ff5f56"/>
+  <circle cx="44" cy="21" r="6" fill="#ffbd2e"/>
+  <circle cx="64" cy="21" r="6" fill="#27c93f"/>
+  <text x="90" y="26" fill="#8b949e" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">eval-gate quickstart — /tmp</text>
+  <g fill="#c9d1d9" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15">
+    <text x="28" y="78"><tspan fill="#7ee787">$</tspan> eval-gate quickstart</text>
+    <text x="28" y="112">[p1_pass] expected=PASS actual=PASS pass_rate=0.8917 delta=+0.0125</text>
+    <text x="28" y="136">[p2_regression] expected=BLOCK actual=BLOCK pass_rate=0.8063 delta=-0.0729</text>
+    <text x="28" y="160">[p3_false_green] expected=FAIL actual=FAIL pass_rate=0.7917 delta=+0.0000</text>
+    <text x="28" y="184">[p4_tool_drift] expected=BLOCK actual=BLOCK pass_rate=0.8917 delta=+0.0125</text>
+    <text x="28" y="220" fill="#8b949e">示例仓判决：</text>
+    <text x="28" y="244" fill="#8b949e">| 场景 | 预期 | 实际 | 结果 | 通过率 | delta |</text>
+    <text x="28" y="268" fill="#8b949e">|---|---|---|---|---|---|</text>
+    <text x="28" y="292">| p1_pass | PASS | PASS | OK | 0.8917 | +0.0125 |</text>
+    <text x="28" y="316">| p2_regression | BLOCK | BLOCK | OK | 0.8063 | -0.0729 |</text>
+    <text x="28" y="340">| p3_false_green | FAIL | FAIL | OK | 0.7917 | +0.0000 |</text>
+    <text x="28" y="364">| p4_tool_drift | BLOCK | BLOCK | OK | 0.8917 | +0.0125 |</text>
+    <text x="28" y="404" fill="#7ee787">这 4 个判决回答的是同一件事：</text>
+    <text x="28" y="428">  PASS      p1_pass            同分布小改动：+1.25pp，CI 未跨过 0，放行</text>
+    <text x="28" y="452">  BLOCK     p2_regression      回退 -7.29pp，CI 上限仍低于 -3%，阻断</text>
+    <text x="28" y="476">  FAIL      p3_false_green     答案变长骗过 naive 检查，但权威评分 79.17% 未过 80% 下限</text>
+    <text x="28" y="500">  BLOCK     p4_tool_drift      工具描述新增读取 ~/.aws/credentials，漂移规则阻断</text>
+    <text x="28" y="540"><tspan fill="#7ee787">4/4 符合预期，耗时 1.12s</tspan><tspan fill="#8b949e">（bootstrap=2000，seed=20261103）</tspan></text>
+    <text x="28" y="576" fill="#8b949e">证据目录：/tmp/eg-qs-final</text>
+  </g>
+  <text x="28" y="604" fill="#484f58" font-family="ui-monospace, monospace" font-size="11">真实终端输出 · eval-gate v0.2.0 · bootstrap=2000 · seed=20261103 · 2026-11-04</text>
+</svg>

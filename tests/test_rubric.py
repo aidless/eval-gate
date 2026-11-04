@@ -1,5 +1,6 @@
 import unittest
 
+from eval_gate.errors import EvalGateError
 from eval_gate.rubric import score_item, score_records
 
 
@@ -102,7 +103,7 @@ class RubricTests(unittest.TestCase):
         self.assertFalse(row["naive_pass"])
 
     def test_duplicate_prediction_id_rejected(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(EvalGateError):
             score_records([item()], [pred("a"), pred("b")])
 
     def test_score_records_order_follows_dataset(self):

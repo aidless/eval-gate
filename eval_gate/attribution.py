@@ -9,6 +9,8 @@
 """
 from __future__ import annotations
 
+from typing import Any
+
 from .rubric import RUBRIC
 
 
@@ -41,11 +43,11 @@ _ACTIONS = {
 
 def render_attribution(
     *,
-    candidate_rows: list[dict],
-    baseline_rows: list[dict],
-    verdict: dict,
+    candidate_rows: list[dict[str, Any]],
+    baseline_rows: list[dict[str, Any]],
+    verdict: dict[str, Any],
     changed_files: list[str] | None = None,
-    tools_evidence: dict | None = None,
+    tools_evidence: dict[str, Any] | None = None,
     candidate_models: set[str] | None = None,
     baseline_models: set[str] | None = None,
 ) -> str:
@@ -104,7 +106,12 @@ def render_attribution(
             else:
                 layer = "L2"
                 dims = row.get("dimensions") or {}
-                dimension = min(dims, key=lambda k: (dims[k], -RUBRIC["l2_weights"].get(k, 0)))
+                if dims:
+                    dimension = min(
+                        dims, key=lambda k: (dims[k], -RUBRIC["l2_weights"].get(k, 0)))
+                else:
+                    # 外部判分器只给 pass/l1_failures，没有分维度分数。
+                    dimension = "external_scorer"
             span = (row.get("output_excerpt") or "").replace("|", "\\|").replace("\n", " ")
             lines.append(
                 f"| `{row['id']}` | {row.get('family')} | {layer} | {dimension} | "

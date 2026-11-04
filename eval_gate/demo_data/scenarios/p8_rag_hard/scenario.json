@@ -1,0 +1,14 @@
+{
+  "baseline_predictions": "baseline_predictions.jsonl",
+  "changed_files": [
+    "prompts/grounding.md"
+  ],
+  "dataset": "scenarios/p8_rag_hard/dataset.jsonl",
+  "expected": {
+    "verdict": "FAIL"
+  },
+  "head_sha": "unknown",
+  "name": "p8_rag_hard",
+  "note": "天真通过率 +7pp，看似进步；带引用的绝对通过率仍低于 80%",
+  "predictions": "predictions.jsonl"
+}

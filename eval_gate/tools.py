@@ -14,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from typing import Any
 
 RULES = [
     {
@@ -93,14 +94,14 @@ def _norm(text: str) -> str:
     return " ".join((text or "").split()).lower()
 
 
-def tool_text(tool: dict) -> str:
+def tool_text(tool: dict[str, Any]) -> str:
     parts = [tool.get("name", ""), tool.get("description", "")]
     schema = tool.get("inputSchema") or tool.get("parameters") or {}
     parts.append(json.dumps(schema, ensure_ascii=False))
     return "\n".join(parts)
 
 
-def scan_text(text: str) -> list[dict]:
+def scan_text(text: str) -> list[dict[str, Any]]:
     hits = []
     for rid, severity, patterns, why in _COMPILED:
         for pattern in patterns:
@@ -120,24 +121,24 @@ def scan_text(text: str) -> list[dict]:
     return hits
 
 
-def digest_tool(tool: dict) -> str:
+def digest_tool(tool: dict[str, Any]) -> str:
     canon = json.dumps(tool, sort_keys=True, ensure_ascii=False)
     return hashlib.sha256(canon.encode()).hexdigest()
 
 
-def _changed_fields(old: dict, new: dict) -> list[str]:
+def _changed_fields(old: dict[str, Any], new: dict[str, Any]) -> list[str]:
     fields = ("description", "title", "annotations", "name", "inputSchema", "parameters")
     return [f for f in fields
             if json.dumps(old.get(f, "<absent>"), sort_keys=True, ensure_ascii=False)
             != json.dumps(new.get(f, "<absent>"), sort_keys=True, ensure_ascii=False)]
 
 
-def _hit_map(tool: dict) -> dict[tuple[str, str], str]:
+def _hit_map(tool: dict[str, Any]) -> dict[tuple[str, str], str]:
     return {(h["rule"], h["anchor"]): h.get("match", "")
             for h in scan_text(tool_text(tool))}
 
 
-def diff_tool(old: dict, new: dict) -> dict:
+def diff_tool(old: dict[str, Any], new: dict[str, Any]) -> dict[str, Any]:
     """返回 status / fields / new_hits / changed_hits / alarm。"""
     if not old:
         return {"status": "new", "fields": _changed_fields({}, new),
@@ -162,7 +163,7 @@ def diff_tool(old: dict, new: dict) -> dict:
     }
 
 
-def scan_tools(tools: list[dict], snapshot: dict | None = None) -> dict:
+def scan_tools(tools: list[dict[str, Any]], snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
     """扫描当前工具清单，并与 pin 快照（digests + tools）比对漂移。"""
     pin_digests = (snapshot or {}).get("digests", {})
     pin_tools = (snapshot or {}).get("tools", {})
@@ -217,7 +218,7 @@ def scan_tools(tools: list[dict], snapshot: dict | None = None) -> dict:
     }
 
 
-def build_snapshot(tools: list[dict]) -> dict:
+def build_snapshot(tools: list[dict[str, Any]]) -> dict[str, Any]:
     """等价于 `mcp-guard-scan tools.json --pin` 写出的快照格式。"""
     return {
         "digests": {t.get("name", "?"): digest_tool(t) for t in tools},
