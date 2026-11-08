@@ -149,6 +149,7 @@ Wilson 95% CI；按 family 分层的 paired bootstrap，默认 10,000 次，seed
 ## 开发
 
 ```bash
+python3 -m pip install -r requirements.lock  # 只装 pytest / mypy（运行期仍零依赖）
 python3 -m pytest tests -q                 # 129 tests
 python3 -m mypy                            # strict，0 errors
 python3 -m eval_gate.cli demo              # 10 场景，10/10
