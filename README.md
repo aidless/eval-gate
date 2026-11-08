@@ -1,6 +1,6 @@
 # eval-gate
 
-**同一批题，通过率从 87.92% 掉到 80.63%，这个 PR 到底该不该合？** eval-gate 用配对 bootstrap 置信区间判断这个差值是不是噪声，输出 `PASS / REVIEW / FAIL / BLOCK / INCOMPLETE`，并附一张回退归因表。
+**同一批题，通过率从 87.92% 掉到 80.63%，这个 PR 到底该不该合？** eval-gate 用配对 bootstrap 置信区间判断这个差值是不是噪声，输出 `PASS / REVIEW / FAIL / BLOCK / INCOMPLETE`，并附一张回退归因表。（这对数字的输入是 `eval_gate/demo_data/scenarios/p2_regression/` 下的 `baseline_predictions.jsonl` / `predictions.jsonl`，可用 `eval-gate quickstart` 复算。）
 
 [![ci](https://github.com/aidless/eval-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/aidless/eval-gate/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
