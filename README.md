@@ -3,6 +3,8 @@
 **同一批题，通过率从 87.92% 掉到 80.63%，这个 PR 到底该不该合？** eval-gate 用配对 bootstrap 置信区间判断这个差值是不是噪声，输出 `PASS / REVIEW / FAIL / BLOCK / INCOMPLETE`，并附一张回退归因表。（这对数字的输入是 `eval_gate/demo_data/scenarios/p2_regression/` 下的 `baseline_predictions.jsonl` / `predictions.jsonl`，可用 `eval-gate quickstart` 复算。）
 
 [![ci](https://github.com/aidless/eval-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/aidless/eval-gate/actions/workflows/ci.yml)
+
+> **English TL;DR**: A statistical verdict layer for existing evaluation results: from candidate and baseline predictions on the same questions it computes paired-bootstrap confidence intervals and emits PASS / REVIEW / FAIL / BLOCK / INCOMPLETE with an attribution table and recomputable evidence. `eval-gate quickstart` runs four offline demo scenarios without any model calls. It does not replace eval frameworks; it decides whether a score delta exceeds noise and whether a change may ship — deleted evidence yields INCOMPLETE, never PASS.
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![status](https://img.shields.io/badge/status-v0.2.0%20pre--release-orange)
 
