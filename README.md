@@ -146,6 +146,7 @@ Wilson 95% CI；按 family 分层的 paired bootstrap，默认 10,000 次，seed
 - [how.md](docs/how.md)：5 个真实场景的命令、期望输出、旧比较怎么骗人
 - [reference.md](docs/reference.md)：参数、判决语义、退出码、产物、public API 冻结
 - [troubleshooting.md](docs/troubleshooting.md)：常见报错与解法
+- [BENCHMARK.md](docs/BENCHMARK.md)：冻结 demo 套件的可引用基准报告（10 场景 + 统计口径 + 复现命令）
 - [STATS_DESIGN.md](STATS_DESIGN.md) / [FAILURE_MODES.md](FAILURE_MODES.md)：统计设计与失效模式
 
 ## 开发
