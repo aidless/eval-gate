@@ -3,6 +3,7 @@ name: ci
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,7 +35,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: install mypy (pinned)
-        run: python3 -m pip install -r requirements.lock
+        run: python3 -m pip install --require-hashes -r requirements.ci.lock
       - name: mypy strict（零错误）
         run: python3 -m mypy
 
@@ -46,7 +47,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: build wheel
-        run: python3 -m pip install build && python3 -m build --wheel
+        run: python3 -m pip install --require-hashes -r requirements.ci.lock && python3 -m build --wheel
       - name: clean venv install + quickstart
         run: |
           python3 -m venv /tmp/venv
