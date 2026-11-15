@@ -68,6 +68,31 @@ class TamperTests(unittest.TestCase):
             verified = verify_run(out)["verdict"]
             self.assertNotEqual(verified["verdict"], "PASS")
 
+    def test_tampered_manifest_only_file_is_incomplete(self):
+        """manifest 登记但不在按层必需列表里的文件（summary.json）也必须比哈希。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            out = pathlib.Path(tmp) / "p1"
+            self.assertEqual(run_scenario(out, "p1_pass")["verdict"], "PASS")
+            summary = out / "evidence" / "summary.json"
+            self.assertIn("evidence/summary.json",
+                          json.loads((out / "run.json").read_text(encoding="utf-8"))
+                          ["evidence_manifest"])
+            summary.write_text(summary.read_text(encoding="utf-8") + "\n",
+                               encoding="utf-8")
+            result = verify_run(out)
+            self.assertEqual(result["verdict"]["verdict"], "INCOMPLETE")
+            self.assertTrue(any("哈希" in p for p in result["problems"]),
+                            result["problems"])
+
+    def test_clean_run_reports_zero_problems(self):
+        """反向守卫：没被动过的 run 不许报问题，也不许被判 INCOMPLETE。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            out = pathlib.Path(tmp) / "p1"
+            self.assertEqual(run_scenario(out, "p1_pass")["verdict"], "PASS")
+            result = verify_run(out)
+            self.assertEqual(result["problems"], [])
+            self.assertEqual(result["verdict"]["verdict"], "PASS")
+
     def test_deleting_whole_evidence_dir_is_incomplete(self):
         with tempfile.TemporaryDirectory() as tmp:
             out = pathlib.Path(tmp) / "p1"

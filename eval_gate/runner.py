@@ -288,7 +288,10 @@ def verify_run(run_dir: pathlib.Path | str,
 
     missing: list[str] = []
     tampered: list[str] = []
-    for rel in required:
+    # manifest 里登记过的每一份证据都要比哈希，不只是按层要求的那几份：
+    # 否则登记的哈希是装饰——改一个字节照样 0 问题（2026-11-14 实测 summary.json）。
+    checked = list(dict.fromkeys(list(required) + [k for k in manifest if k not in required]))
+    for rel in checked:
         path = run_dir / rel
         if not path.exists():
             missing.append(rel)
@@ -363,6 +366,9 @@ def verify_run(run_dir: pathlib.Path | str,
             verdict = _force_incomplete(
                 verdict, "存储判决与重算不一致：" + "; ".join(mismatch))
     elif tampered:
+        # 篡改必须出现在 problems 里：只改 verdict 而 problems 计数仍为 0，
+        # 使用者看到的是「verify: 0 个问题」却拿到失败退出码。
+        problems.extend(f"证据哈希不匹配 {rel}" for rel in tampered)
         verdict = _force_incomplete(
             verdict, "证据哈希不匹配：" + ", ".join(tampered))
     elif missing:
