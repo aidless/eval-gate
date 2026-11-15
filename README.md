@@ -7,6 +7,7 @@
 [![ci](https://github.com/aidless/eval-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/aidless/eval-gate/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![deps](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)
+[![pypi](https://img.shields.io/pypi/v/eval-verdict.svg)](https://pypi.org/project/eval-verdict/)
 ![status](https://img.shields.io/badge/status-v0.2.0%20pre--release-orange)
 
 ## The argument it settles
@@ -30,10 +31,11 @@ The interval `[-0.0875, -0.0583]` sits entirely outside the −3% tolerance, so 
 ## 30 seconds, no API key, no network
 
 ```bash
-git clone https://github.com/aidless/eval-gate.git && cd eval-gate
-python3 -m pip install .
+python3 -m pip install eval-verdict   # distribution name; the command is still `eval-gate`
 eval-gate quickstart
 ```
+
+Or from source: `git clone https://github.com/aidless/eval-gate && cd eval-gate && python3 -m pip install .`
 
 Measured on a clean clone (bootstrap=2000, seed=20261103):
 
@@ -99,7 +101,7 @@ Input errors (missing file, bad JSON, wrong field type, inconsistent pass@k) exi
 - **Not an eval framework.** It does not call models, generate answers, or replace promptfoo / DeepEval / Ragas. Those produce the numbers; this decides whether the numbers may ship.
 - **Not a judge calibrator.** It reads scores you already trust. If the judge itself drifted, the honest output is `REVIEW` (scorer version mismatch) — it will not invent a correction.
 - **No runtime dependencies.** Standard library only, Python 3.10+, offline.
-- **Not published on PyPI yet** (`pip install eval-gate` 404s today). Use `pip install .` from the clone; that line will change once 0.2.0 is on PyPI.
+- **The PyPI distribution is named `eval-verdict`, not `eval-gate`.** PyPI rejected `eval-gate` as "too similar to an existing project" (there is an unrelated `evalgate` on the index), so the distribution name differs from the repository and the command. Install with `pip install eval-verdict`; run `eval-gate`.
 - **Numbers in this file are the ones the code prints**, re-measured on 2026-11-14 on a clean clone; `eval-gate demo` checks the frozen expectations on every CI run.
 
 ## Statistics
@@ -139,7 +141,7 @@ eval-gate quickstart
 
 其中 p3 的 79.17% 是内置 rubric 的评分（`support-qa-zh` v0.1，见 [rubric.py](eval_gate/rubric.py)；naive 长度检查会给 100% 全绿）；p4 的漂移规则指工具描述里新增了敏感凭据路径（演示样例，原文见 [docs/quickstart.svg](docs/quickstart.svg)）。
 
-> PyPI 上还没有 `eval-gate`（当前返回 404）。发布前请用上面的 `pip install .`；发布后再改成 `pip install eval-gate`。
+> **PyPI 上的包名是 `eval-verdict`，不是 `eval-gate`。** 首次上传时 PyPI 以「名称与既有项目过于相似」为由拒绝 `eval-gate`（索引里有一个无关的 `evalgate`），所以发行名与仓库名、命令名不同：装用 `pip install eval-verdict`，跑仍用 `eval-gate`。当前版本 0.2.0 已发布：<https://pypi.org/project/eval-verdict/>
 
 ## 它解决的具体问题
 

@@ -1,5 +1,5 @@
 [project]
-name = "eval-gate"
+name = "eval-verdict"
 version = "0.2.0"
 description = "Statistical gate for LLM eval changes: paired bootstrap CIs, blocking verdicts, tamper-resistant evidence"
 readme = "README.md"
@@ -24,6 +24,7 @@ dev = ["pytest>=8.0", "mypy>=1.8"]
 
 [project.urls]
 Homepage = "https://github.com/aidless/eval-gate"
+PyPI = "https://pypi.org/project/eval-verdict/"
 Repository = "https://github.com/aidless/eval-gate"
 Issues = "https://github.com/aidless/eval-gate/issues"
 

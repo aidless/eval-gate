@@ -39,14 +39,19 @@ if [ "$REPO" = "testpypi" ]; then
   INDEX_ARGS="--index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/"
 else
   python3 -m twine upload --username __token__ --password "$PYPI_TOKEN" dist/*
-  INDEX_ARGS=""
+  INDEX_ARGS="--index-url https://pypi.org/simple/"
 fi
 
 # 上传不是成功判据：新环境里真装一次、真跑一次才算。
 VERSION=$(python3 -c "import tomllib,pathlib;print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
 TMP=$(mktemp -d)
 python3 -m venv "$TMP/venv"
-"$TMP/venv/bin/pip" -q install $INDEX_ARGS "eval-gate==$VERSION"
+# PyPI 索引有传播延迟：刚上传完立刻装可能 404，重试三次再看。
+for attempt in 1 2 3; do
+  if "$TMP/venv/bin/pip" -q install $INDEX_ARGS "eval-verdict==$VERSION"; then break; fi
+  if [ "$attempt" = 3 ]; then echo "装不上 eval-verdict==$VERSION（三次重试；本机 pip 走清华镜像时刚发的包可能还没同步）" >&2; exit 5; fi
+  sleep 10
+done
 ( cd "$TMP" && "$TMP/venv/bin/eval-gate" quickstart | tail -3 )
-echo "已发布 eval-gate $VERSION 到 $REPO，且在新 venv 里跑通 quickstart。"
+echo "已发布 eval-verdict $VERSION 到 $REPO，且在新 venv 里跑通 quickstart。"
 echo "接着改三处文案：eval-gate/README.md（PyPI 段）、aidless/README.md（not on PyPI 列表）、发布包 §2 正文。"
